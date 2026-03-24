@@ -77,6 +77,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'news' | 'quiz' | 'about'>('news');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   // Auth Listener
   useEffect(() => {
@@ -148,6 +149,21 @@ export default function App() {
       console.error("Error refreshing news:", error);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const handleSignIn = async () => {
+    setAuthError(null);
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+        setAuthError("Sign-in window was closed before completion. Please try again.");
+      } else {
+        setAuthError("An error occurred during sign-in. Please try again.");
+      }
+      // Auto-clear error after 5 seconds
+      setTimeout(() => setAuthError(null), 5000);
     }
   };
 
@@ -248,7 +264,7 @@ export default function App() {
               </div>
             ) : (
               <button 
-                onClick={signInWithGoogle}
+                onClick={handleSignIn}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all shadow-sm"
               >
                 Sign In
@@ -257,6 +273,24 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* Auth Error Toast */}
+      <AnimatePresence>
+        {authError && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 20, x: '-50%' }}
+            className="fixed bottom-8 left-1/2 z-[100] bg-gray-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-gray-800"
+          >
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-sm font-medium">{authError}</span>
+            <button onClick={() => setAuthError(null)} className="ml-2 p-1 hover:bg-white/10 rounded-lg transition-colors">
+              <X size={14} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-7xl mx-auto px-4 py-8 flex gap-8">
         {/* Sidebar Desktop */}
