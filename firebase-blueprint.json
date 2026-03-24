@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "NewsItem": {
+      "title": "NewsItem",
+      "description": "A single current affairs item relevant for government exams.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "category": { "type": "string", "enum": ["Important Editorials", "Environment", "Economy", "International Relations", "Science & Technology", "Sports"] },
+        "prelimsPoints": { "type": "array", "items": { "type": "string" } },
+        "mainsPoints": { "type": "array", "items": { "type": "string" } },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "date": { "type": "string", "format": "date-time" },
+        "source": { "type": "string" },
+        "mcqs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "question": { "type": "string" },
+              "options": { "type": "array", "items": { "type": "string" } },
+              "correctAnswer": { "type": "string" },
+              "explanation": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["title", "summary", "category", "date"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile and bookmarks.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "bookmarks": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/news": {
+      "schema": "NewsItem",
+      "description": "Collection of exam-relevant news items."
+    },
+    "/users": {
+      "schema": "User",
+      "description": "Collection of user profiles and bookmarks."
+    }
+  }
+}

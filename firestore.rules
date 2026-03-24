@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: news
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required)
+    //   - summary: string (required)
+    //   - category: string (required)
+    //   - prelimsPoints: array of strings
+    //   - mainsPoints: array of strings
+    //   - tags: array of strings
+    //   - date: string (ISO 8601)
+    //   - source: string
+    //   - mcqs: array of objects (question, options, correctAnswer, explanation)
+    //
+    // Collection: users
+    // Document ID: user UID
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - bookmarks: array of strings (news item IDs)
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        (request.auth.token.email == "examswithshruti@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    // News Collection: Publicly readable, but only admins can write
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Users Collection: Only owners can read/write their own data
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
